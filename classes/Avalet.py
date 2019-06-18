@@ -13,8 +13,8 @@ class Avalet:
             self.loadVars()
 
     def install(self):
-        os.system('brew list httpd || brew install httpd')
-        os.system('brew list dnsmasq || brew install dnsmasq')
+        os.system('brew list httpd &>/dev/null && echo "Apache server installed" || brew install httpd')
+        os.system('brew list dnsmasq &>/dev/null && echo "dnsmasq installed" || brew install dnsmasq')
         if not Path.is_dir(Path(self.homedir+'/.config')):
             Path(self.homedir+'/.config').mkdir(0o755)
         if not Path.is_dir(Path(self.homedir+'/.config/avalet')):
