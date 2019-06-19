@@ -19,9 +19,9 @@ if len(sys.argv)==1:
 
 else:
 
-    def updateTLD (name):
-        if avalet.vars['tld']!=name:
-            avalet.updateTLD(name)
+    def updateTLD ():
+        if avalet.vars['tld']!=sys.argv[2]:
+            avalet.updateTLD(sys.argv[2])
 
     def secure ():
         domain = avalet.getDomain()
@@ -37,16 +37,22 @@ else:
             
             config_dir = avalet.homedir+'/.config/avalet/'
 
-            vhost="""<VirtualHost {name}{tld}:80>
+            vhost="""<VirtualHost 127.0.0.1:80>
     ServerName {name}{tld}
     DocumentRoot "{docroot}"
     ErrorLog "{log_dir}/{name}_error_log"
     CustomLog "{log_dir}/{name}_access_log" common
 </VirtualHost>
+<Directory "{docroot}">
+    Options FollowSymLinks Indexes MultiViews
+    DirectoryIndex index.php index.html
+    AllowOverride All
+    Require all granted
+</Directory>
 
             """.format_map({'name':domain,'docroot':dirpath,'dir':config_dir+'certificates/','log_dir':config_dir+'logs','tld':tld})
-            file=config_dir+'httpd/'+domain+'.conf'
-            print (colored("Domain "+domain+" created at "+dirpath,attrs=['bold']))
+            file=config_dir+'httpd/'+domain+avalet.vars['tld']+'.conf'
+            print (colored("Domain "+domain+avalet.vars['tld']+" created at "+dirpath,attrs=['bold']))
             f = open (file, 'w+')
             f.write(vhost)
             f.close()
