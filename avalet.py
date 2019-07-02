@@ -37,7 +37,7 @@ else:
             
             config_dir = avalet.homedir+'/.config/avalet/'
 
-            vhost="""<VirtualHost 127.0.0.1:80>
+            vhost="""<VirtualHost {name}{tld}:80>
     ServerName {name}{tld}
     DocumentRoot "{docroot}"
     ErrorLog "{log_dir}/{name}_error_log"

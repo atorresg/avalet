@@ -89,7 +89,7 @@ listen-address=127.0.0.1""")
         dirpath = os.getcwd()
         config_dir = self.homedir+'/.config/avalet/'
         vhost="""
-<VirtualHost 127.0.0.1:443>
+<VirtualHost {name}{tld}:443>
     ServerName {name}{tld}
     DocumentRoot "{docroot}"
     SSLEngine on
