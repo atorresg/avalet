@@ -111,6 +111,8 @@ class Avalet:
                     os.system('sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist')
                     print('Installing '+colored("Apache",'green', attrs=['bold'])+'...')
                     os.system('brew install httpd')
+                    print('Installing '+colored("PHP",'green', attrs=['bold'])+'...')
+                    os.system('brew install php')
                     self.vars['apache']='brew'
                 else:
                     self.vars['apache']='other'
@@ -120,7 +122,11 @@ class Avalet:
                 if not 'Include '+self.homedir+'/.config/avalet/httpd/*.conf' in f.read():
                     f.close()
                     f = open('/usr/local/etc/httpd/httpd.conf','a')
-                    f.write('Include '+self.homedir+'/.config/avalet/httpd/*.conf')
+                    f.write("LoadModule php7_module /usr/local/opt/php/lib/httpd/modules/libphp7.so\n")
+                    f.write("<FilesMatch \.php$>\n")
+                    f.write("   SetHandler application/x-httpd-php\n")
+                    f.write("</FilesMatch>\n")
+                    f.write("Include '+self.homedir+'/.config/avalet/httpd/*.conf")
             f.close()
             f = open (self.homedir+'/.config/avalet/httpd/avalet.conf','w+')
             f.write ("""Listen 80
@@ -242,11 +248,11 @@ listen-address=127.0.0.1""")
         if self.vars['domains'][domain]['secure']:
             print ("""Deletting certificate...
         """)
-            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.key').unlink()
-            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.crt').unlink()
+            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.key').unlink(true)
+            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.crt').unlink(true)
         print ("""Deletting Apache config...
         """)
-        Path(self.config_dir+'/httpd/'+domain+self.vars['tld']+'.conf').unlink()
+        Path(self.config_dir+'/httpd/'+domain+self.vars['tld']+'.conf').unlink(true)
         del self.vars['domains'][domain]
         self.updateVars()
         self.restart('apache')
