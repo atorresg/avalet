@@ -122,11 +122,12 @@ class Avalet:
                 if not 'Include '+self.homedir+'/.config/avalet/httpd/*.conf' in f.read():
                     f.close()
                     f = open('/usr/local/etc/httpd/httpd.conf','a')
-                    f.write("LoadModule php7_module /usr/local/opt/php/lib/httpd/modules/libphp7.so\n")
-                    f.write("<FilesMatch \.php$>\n")
-                    f.write("   SetHandler application/x-httpd-php\n")
-                    f.write("</FilesMatch>\n")
-                    f.write("Include '+self.homedir+'/.config/avalet/httpd/*.conf")
+                    f.write("""LoadModule php7_module /usr/local/opt/php/lib/httpd/modules/libphp7.so
+                    <FilesMatch \.php$>
+                       SetHandler application/x-httpd-php
+                    </FilesMatch>
+                    """)
+                    f.write('Include '+self.homedir+'/.config/avalet/httpd/*.conf')
             f.close()
             f = open (self.homedir+'/.config/avalet/httpd/avalet.conf','w+')
             f.write ("""Listen 80
@@ -247,12 +248,19 @@ listen-address=127.0.0.1""")
     def unlink(self,domain):
         if self.vars['domains'][domain]['secure']:
             print ("""Deletting certificate...
-        """)
-            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.key').unlink(true)
-            Path(self.config_dir+'/certificates/'+domain+self.vars['tld']+'.crt').unlink(true)
+            """)
+            certPath = self.config_dir+'/certificates/'+domain+self.vars['tld']
+            keyPath = Path(certPath+'.key')
+            if (keyPath.exists()):
+                keyPath.unlink()
+            certPath = Path(certPath+'.crt')
+            if (certPath.exists()):
+                certPath.unlink()
         print ("""Deletting Apache config...
         """)
-        Path(self.config_dir+'/httpd/'+domain+self.vars['tld']+'.conf').unlink(true)
+        confPath = Path(self.config_dir+'/httpd/'+domain+self.vars['tld']+'.conf')
+        if (confPath.exists()):
+            confPath.unlink()
         del self.vars['domains'][domain]
         self.updateVars()
         self.restart('apache')
@@ -262,7 +270,7 @@ listen-address=127.0.0.1""")
             print ('Domain '+colored(domain+self.vars['tld'],'green',attrs=['bold'])+' already secured. If you have any problems try to unlink and link again')
         else:
             print ("""Generating certificate...
-        """)
+            """)
             dirpath = os.getcwd()
             config_dir = self.homedir+'/.config/avalet/'
             vhost="""<VirtualHost {name}{tld}:443>
