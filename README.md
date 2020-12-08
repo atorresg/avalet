@@ -4,13 +4,21 @@ A script inspired by Laravel's valet but for Apache. It creates Apache .conf fil
 ## install
 ### install Homebrew
 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+### install python 3
+`brew install python3`  
+
+### install pip
+`curl -O https://bootstrap.pypa.io/get-pip.py  
+python3 get-pip.py`  
+
 ### install Avalet
 Execute  
 `git clone https://github.com/atorresg/avalet`  
 `cd avalet`  
 `pip install .`  
 If you want to make it global include this on your bash/zsh initialization file  
-`alias avalet="python [path]/avalet.py` where [path] is the path to the folder where you cloned this git  
+`alias avalet="python [path]/avalet.py"` where [path] is the path to the folder where you cloned this git  
 and after that  
 `avalet install`  
 
