@@ -282,7 +282,7 @@ listen-address=127.0.0.1""")
     ErrorLog "{log_dir}/{name}_error_log"
     CustomLog "{log_dir}/{name}_access_log" common
 </VirtualHost>""".format_map({'name':domain,'docroot':dirpath,'log_dir':config_dir+'logs','dir':config_dir+'certificates/','tld':self.vars['tld']})
-            cert="""openssl req  -nodes -new -x509  -keyout {dir}{name}{tld}.key -out {dir}{name}{tld}.crt"""
+            cert="""openssl req  -nodes -new -x509  -keyout {dir}{name}{tld}.key -out {dir}{name}{tld}.crt && open {dir}{name}{tld}.crt"""
             os.system(cert.format_map({'name':domain,'dir':self.config_dir+'certificates/','tld':self.vars['tld']}))
             file=config_dir+'httpd/'+domain+self.vars['tld']+'.conf'
             f = open (file, 'a')
