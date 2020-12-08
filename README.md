@@ -16,7 +16,8 @@ and after that
 
 ## Usage
 Just open the terminal and go to any folder which will be the DocumentRoot of the project.
-`avalet link example`
+
+`avalet link example`  
 Create the local domain example.test and set the DocumentRoot to the actual path  
 
 `avalet unlink`  
