@@ -6,7 +6,7 @@ A script inspired by Laravel's valet but for Apache. It creates Apache .conf fil
 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 ### install Avalet
 Execute  
-`git clone ttps://github.com/atorresg/avalet`  
+`git clone https://github.com/atorresg/avalet`  
 `cd avalet`  
 `pip install .`  
 If you want to make it global include this on your bash/zsh initialization file  
