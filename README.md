@@ -9,8 +9,8 @@ A script inspired by Laravel's valet but for Apache. It creates Apache .conf fil
 `brew install python3`  
 
 ### install pip
-`curl -O https://bootstrap.pypa.io/get-pip.py  
-python3 get-pip.py`  
+`curl -O https://bootstrap.pypa.io/get-pip.py`
+`python3 get-pip.py`  
 
 ### install Avalet
 Execute  
