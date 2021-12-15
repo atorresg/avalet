@@ -63,7 +63,7 @@ class Avalet:
             # check Homebrew is installed
             if which('brew') is None:
                 print(colored("Homebrew not installed.",'red', attrs=['bold']))
-                print('do you want to install Homebrew? Y/n')
+                print('do you want to install Homebrew (needed)? Y/n')
                 res = input()
                 if (res.lower()!='n'):
                     os.system('mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew && rm -rf homebrew')
@@ -84,15 +84,15 @@ class Avalet:
                 os.system('brew install dnsmasq;')
 
             # set up Dnsmasq
-            if not Path.is_dir(Path('/etc/resolver')):
-                os.system('sudo mkdir /etc/resolver')
+            if not Path.is_dir(Path('/usr/local/etc/resolver')):
+                os.system('sudo mkdir /usr/local/etc/resolver')
             if not Path.is_file(Path('/usr/local/etc/dnsmasq.conf')):
-                os.system('sudo cp /usr/local/etc/dnsmasq.conf.default /usr/local/etc/dnsmasq.conf')
-            os.system('sudo chmod 764 /usr/local/etc/dnsmasq.conf')
+                os.system('cp /usr/local/etc/dnsmasq.conf.default /usr/local/etc/dnsmasq.conf')
+            os.system('chmod 764 /usr/local/etc/dnsmasq.conf')
             with open('/usr/local/etc/dnsmasq.conf','r') as f:
                 if not 'conf-file='+self.homedir+'/.config/avalet/dnsmasq.conf' in f.read():
                     f.close()
-                    os.system('sudo echo "conf-file='+self.homedir+'/.config/avalet/dnsmasq.conf" > /usr/local/etc/dnsmasq.conf')
+                    os.system('echo "conf-file='+self.homedir+'/.config/avalet/dnsmasq.conf" > /usr/local/etc/dnsmasq.conf')
             f.close()
 
             # check if Apache is installed
@@ -107,12 +107,13 @@ class Avalet:
                 res = input()
                 if (res.lower()!='n'):
                 # uninstall default MacOS Apache, may be of use 
-                    os.system('sudo apachectl stop')
-                    os.system('sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist')
+                    os.system('apachectl stop &>/dev/null')
+                    os.system('unlink /usr/local/etc/httpd/httpd.conf')
+                    os.system('launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist &>/dev/null')
                     print('Installing '+colored("Apache",'green', attrs=['bold'])+'...')
                     os.system('brew install httpd')
                     print('Installing '+colored("PHP",'green', attrs=['bold'])+'...')
-                    os.system('brew install php')
+                    os.system('brew install php@7.4 php@7.4-imap')
                     self.vars['apache']='brew'
                 else:
                     self.vars['apache']='other'
@@ -121,17 +122,28 @@ class Avalet:
             with open('/usr/local/etc/httpd/httpd.conf','r') as f:
                 if not 'Include '+self.homedir+'/.config/avalet/httpd/*.conf' in f.read():
                     f.close()
+                    f = open('/usr/local/etc/httpd/httpd.conf','rt')
+                    filedata = f.read()
+                    filedata = filedata.replace ('AllowOverride none', 'AllowOverride All')
+                    filedata = filedata.replace ('#ServerName www.example.com:8080', 'ServerName localhost:80')
+                    filedata = filedata.replace ('Group _www', 'Group staff')
+                    filedata = filedata.replace ('#LoadModule rewrite_module', 'LoadModule rewrite_module')
+                    filedata = filedata.replace ('#LoadModule ssl_module', 'LoadModule ssl_module')
+                    f.close();
+                    f = open('/usr/local/etc/httpd/httpd.conf','wt')
+                    f.write(filedata)
+                    f.close()
                     f = open('/usr/local/etc/httpd/httpd.conf','a')
-                    f.write("""LoadModule php7_module /usr/local/opt/php/lib/httpd/modules/libphp7.so
-                    <FilesMatch \.php$>
-                       SetHandler application/x-httpd-php
-                    </FilesMatch>
-                    """)
+                    f.write("""LoadModule php7_module /usr/local/opt/php@7.4/lib/httpd/modules/libphp7.so
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+""")
                     f.write('Include '+self.homedir+'/.config/avalet/httpd/*.conf')
             f.close()
             f = open (self.homedir+'/.config/avalet/httpd/avalet.conf','w+')
             f.write ("""Listen 80
-    Listen 443""")
+Listen 443""")
             f.close()
             
             if not Path.is_file(Path(self.homedir+'/.config/avalet/vars')):
@@ -145,11 +157,9 @@ class Avalet:
             print ("""
             Stopping Apache and Dnsmasq""")
             if self.vars['apache']=='brew':
-                os.system('sudo brew services stop httpd &>/dev/null')
                 os.system('brew services stop httpd &>/dev/null')
             else: 
-                os.system('sudo apachectl start &>/dev/null')
-            os.system('sudo brew services stop dnsmasq &>/dev/null')
+                os.system('apachectl start &>/dev/null')
             os.system('brew services stop dnsmasq &>/dev/null')
 
             # finish  with default tld set up
@@ -159,6 +169,7 @@ class Avalet:
 
     def reinstall(self):
         if self.checkinstall():
+            self.stop()
             self.uninstall()
         else:
             print ("""Avalet not instaled. Installing...
@@ -170,17 +181,24 @@ class Avalet:
             if not ('apache' in self.vars) or self.vars['apache']=='brew':
                 print ("""Uninstalling Apache
                 """)
-                os.system('brew uninstall httpd &>/dev/null')
+                os.system('sudo brew remove httpd &>/dev/null')
                 os.system('sudo rm -f /usr/local/opt/httpd')
                 os.system('sudo rm -f /usr/local/var/homebrew/linked/httpd')
                 os.system('sudo rm -rf /usr/local/Cellar/httpd/')
+                os.system('sudo rm -rf /usr/local/opt/httpd')
+                os.system('sudo rm -f /usr/local/var/homebrew/linked/httpd')
             print ("""Uninstalling Dnsmasq
             """)
-            os.system('brew uninstall dnsmasq &>/dev/null')
+            os.system('brew remove dnsmasq &>/dev/null')
             os.system('sudo rm -f /usr/local/opt/dnsmasq')
             os.system('sudo rm -f /usr/local/var/homebrew/linked/dnsmasq')
             os.system('sudo rm -rf /usr/local/Cellar/dnsmasq/')
+            os.system('sudo rm -rf /usr/local/etc/dnsmasq.conf')
+            os.system('sudo rm -rf /usr/local/etc/dnsmasq.conf.default')
+            os.system('sudo rm -rf /usr/local/etc/dnsmasq.d')
             os.system('sudo rm -rf ~/.config/avalet')
+            os.system('sudo brew remove php@7.4-imap php@7.4 &>/dev/null')
+            os.system('sudo rm -rf /usr/local/etc/php')
 
     def updateVars(self):
         with open(self.homedir+'/.config/avalet/vars','wb') as f:
@@ -221,7 +239,7 @@ listen-address=127.0.0.1""")
             
             config_dir = self.homedir+'/.config/avalet/'
 
-            vhost="""<VirtualHost {name}{tld}:80>
+            vhost="""<VirtualHost *:80>
     ServerName {name}{tld}
     DocumentRoot "{docroot}"
     ErrorLog "{log_dir}/{name}_error_log"
@@ -273,7 +291,7 @@ listen-address=127.0.0.1""")
             """)
             dirpath = os.getcwd()
             config_dir = self.homedir+'/.config/avalet/'
-            vhost="""<VirtualHost {name}{tld}:443>
+            vhost="""<VirtualHost *:443>
     ServerName {name}{tld}
     DocumentRoot "{docroot}"
     SSLEngine on
@@ -310,12 +328,15 @@ listen-address=127.0.0.1""")
         print ("""Stopping Apache...
         """)
         if self.vars['apache']=='brew':
-            os.system('sudo brew services stop httpd')
+            os.system('brew services stop httpd &>/dev/null')
+            os.system('sudo brew services stop httpd &>/dev/null')
         else:
+            os.system('apachectl stop')
             os.system('sudo apachectl stop')
+        os.system('killall httpd')
         print ("""Stopping Dnsmasq...
         """)
-        os.system('sudo brew services stop dnsmasq')
+        os.system('sudo brew services stop dnsmasq &>/dev/null')
 
     def start(self):
         print ("""Starting Apache...
